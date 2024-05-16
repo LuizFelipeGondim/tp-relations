@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Estrutura para armazenar as relações
 typedef struct {
   int elementX;
   int elementY;
@@ -33,7 +32,6 @@ int main() {
     printf("%d %d\n", relations[i].elementX, relations[i].elementY);
   }
 
-  // Liberar memória alocada
   free(setA);
   free(relations);
 
@@ -41,19 +39,20 @@ int main() {
 }
 
 Relation* getRelations() {
-  // Ler as relações até que um valor inválido seja inserido
+
   Relation *aux = NULL;
   int elementX, elementY;
   int numRelations = 0;
 
 
-  while (scanf("%d %d", &elementX, &elementY) == 2) {
+  while (scanf("%d %d", &elementX, &elementY) != EOF) {
     numRelations++;
 
-    aux = (Relation*)realloc(aux, numRelations * sizeof(Relation)); // Aloca memória inicial para as relações
+    aux = (Relation*)realloc(aux, numRelations * sizeof(Relation));
     aux[numRelations - 1].elementX = elementX;
     aux[numRelations - 1].elementY = elementY;
   }
 
+  // O ponteiro aux sera desalocado automaticamente
   return aux;
 }
