@@ -8,11 +8,13 @@ typedef struct {
 
 int isReflexive(int numElements, int* setA, int numRelations, Relation* relations);
 
+int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relations);
+
 Relation* getRelations(int* numRelations);
 
 int main() {
   Relation *relations = NULL;
-  int reflexive = 0;
+  int reflexive = 0, irreflexive = 0;
   int numElements, numRelations = 0;
 
   scanf("%d", &numElements);
@@ -24,8 +26,12 @@ int main() {
 
   relations = getRelations(&numRelations);
 
+  printf("Propriedades\n");
+  
   reflexive = isReflexive(numElements, setA, numRelations, relations);
   
+  irreflexive = isIrreflexive(numElements, setA, numRelations, relations);
+
   /*
   printf("Conjunto A:\n");
   for (int i = 0; i < numElements; i++) {
@@ -75,8 +81,31 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
   return reflexive;
 }
 
-int isIrreflexive() {
-  return 1;
+int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relations) {
+  int irreflexive = 1; 
+
+  for (int i = 0; i < numElements; i++) {
+    int element = setA[i];
+
+    for (int j = 0; j < numRelations; j++) {
+      if (relations[j].elementX == element && relations[j].elementY == element) {
+        if (irreflexive) {
+          printf("2. Irreflexiva: F \n");
+          printf("(%d, %d)", element, element);
+          irreflexive = 0;
+        } else {
+          printf(", (%d, %d)", element, element);
+        }
+        break;
+      }
+    }
+  }
+
+  if (irreflexive)
+    printf("2. Irreflexiva: T");
+
+  printf("\n");
+  return irreflexive;
 }
 
 int isSymmetric() {
