@@ -10,11 +10,13 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
 
 int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relations);
 
+int isSymmetric(int numRelations, Relation* relations);
+
 Relation* getRelations(int* numRelations);
 
 int main() {
   Relation *relations = NULL;
-  int reflexive = 0, irreflexive = 0;
+  int reflexive = 0, irreflexive = 0, symmetric = 0;
   int numElements, numRelations = 0;
 
   scanf("%d", &numElements);
@@ -32,7 +34,9 @@ int main() {
   
   irreflexive = isIrreflexive(numElements, setA, numRelations, relations);
 
-  /*
+  symmetric = isSymmetric(numRelations, relations);
+
+  /*  
   printf("Conjunto A:\n");
   for (int i = 0; i < numElements; i++) {
     printf("%d ", setA[i]);
@@ -108,8 +112,37 @@ int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relati
   return irreflexive;
 }
 
-int isSymmetric() {
-  return 1;
+int isSymmetric(int numRelations, Relation* relations) {
+  int symmetric = 1; 
+
+  for (int i = 0; i < numRelations; i++) {
+    int elementX = relations[i].elementX;
+    int elementY = relations[i].elementY;
+    int relationFound = 0;
+
+    for (int j = 0; j < numRelations; j++) {
+      if (relations[j].elementX == elementY && relations[j].elementY == elementX) {
+        relationFound = 1;
+        break;
+      }
+    }
+
+    if (!relationFound) {
+      if (symmetric) {
+        printf("3. Simetrica: F \n");
+        printf("(%d, %d)", elementY, elementX);
+        symmetric = 0;
+      } else {
+        printf(", (%d, %d)", elementY, elementX);
+      }
+    }
+  }
+
+  if (symmetric)
+    printf("3. Simetrica: T");
+
+  printf("\n");
+  return symmetric;
 }
 
 int isAntisymmetric() {
