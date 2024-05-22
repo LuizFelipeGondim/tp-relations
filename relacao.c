@@ -14,12 +14,15 @@ int isSymmetric(int numRelations, Relation* relations);
 
 int isAntiSymmetric(int numElements, int* setA, int numRelations, Relation* relations);
 
+int isTransitive(int numRelations, Relation* relations);
+
 Relation* getRelations(int* numRelations);
 
 int main() {
   Relation *relations = NULL;
   int reflexive, irreflexive, symmetric;
   int antiSymmetric, assymetric, transitive;
+  int equivalence, partialOrder; 
   int numElements, numRelations = 0;
 
   scanf("%d", &numElements);
@@ -49,6 +52,13 @@ int main() {
     printf("5. Assimetrica: F \n");
   }
 
+  transitive = isTransitive(numRelations, relations);
+
+  equivalence = reflexive && symmetric && transitive;
+  partialOrder = reflexive && antiSymmetric && transitive;
+
+  printf("\nRelacao de equivalencia: %s\n", (equivalence ? "V" : "F"));
+  printf("Relacao de ordem parcial: %s\n\n", (partialOrder ? "V" : "F"));
   /*  
   printf("Conjunto A:\n");
   for (int i = 0; i < numElements; i++) {
@@ -66,8 +76,8 @@ int main() {
   return 0;
 }
 
-int findRelation(int numRelations, Relation* relations, int elementX, int elementY) {
-  for (int i = 0; i < numRelations; i++) {
+int findRelation(int index, Relation* relations, int elementX, int elementY) {
+  for (int i = 0; i < index; i++) {
     if (relations[i].elementX == elementX && relations[i].elementY == elementY) {
       return 1;
     }
@@ -205,8 +215,46 @@ int isAntiSymmetric(int numElements, int* setA, int numRelations, Relation* rela
   return antisymmetric;
 }
 
-int isTransitive() {
-  return 1;
+int isTransitive(int numRelations, Relation* relations) {
+  int transitive = 1;
+  int relationFound, relationAnalyzed;
+  Relation *transitiveRelations = (Relation*)malloc((numRelations) * sizeof(Relation));
+  int index = 0;
+
+  for (int i = 0; i < numRelations; i++) {
+    for (int j = 0; j < numRelations; j++) {
+      if (relations[i].elementY == relations[j].elementX) {
+        int elementX = relations[i].elementX;
+        int elementY = relations[j].elementY;
+
+        relationFound = findRelation(numRelations, relations, elementX, elementY);
+        relationAnalyzed = findRelation(index, transitiveRelations, elementX, elementY);
+
+        if ((!relationFound) && (!relationAnalyzed)) {
+          if (transitive) {
+            printf("6. Transitiva: F \n");
+            printf("(%d, %d)", elementX, elementY);
+            transitive = 0;
+          } else {
+            printf(", (%d, %d)", elementX, elementY);
+          }
+
+          transitiveRelations[index].elementX = elementX;
+          transitiveRelations[index].elementY = elementY;
+          index++;
+        }
+      }
+    }
+  }
+
+  free(transitiveRelations);
+
+  if (transitive)
+    printf("6. Transitiva: V");
+
+  printf("\n");
+  
+  return transitive;
 }
 
 Relation* getRelations(int* numRelations) {
