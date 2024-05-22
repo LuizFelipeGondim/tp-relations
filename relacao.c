@@ -12,7 +12,7 @@ int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relati
 
 int isSymmetric(int numRelations, Relation* relations);
 
-int isAntiSymmetric(int numElements, int* setA, int numRelations, Relation* relations);
+int isAntiSymmetric(int numRelations, Relation* relations);
 
 int isTransitive(int numRelations, Relation* relations);
 
@@ -42,15 +42,11 @@ int main() {
 
   symmetric = isSymmetric(numRelations, relations);
 
-  antiSymmetric = isAntiSymmetric(numElements, setA, numRelations, relations);
+  antiSymmetric = isAntiSymmetric(numRelations, relations);
 
   assymetric = irreflexive && antiSymmetric;
 
-  if (assymetric) {
-    printf("5. Assimetrica: V \n");
-  } else {
-    printf("5. Assimetrica: F \n");
-  }
+  printf("5. Assimetrica: %s\n", (assymetric ? "V" : "F"));
 
   transitive = isTransitive(numRelations, relations);
 
@@ -59,16 +55,6 @@ int main() {
 
   printf("\nRelacao de equivalencia: %s\n", (equivalence ? "V" : "F"));
   printf("Relacao de ordem parcial: %s\n\n", (partialOrder ? "V" : "F"));
-  /*  
-  printf("Conjunto A:\n");
-  for (int i = 0; i < numElements; i++) {
-    printf("%d ", setA[i]);
-  }
-
-  printf("\nRelações:\n");
-  for (int i = 0; i < 4; i++) {
-    printf("%d %d\n", relations[i].elementX, relations[i].elementY);
-  }*/
 
   free(setA);
   free(relations);
@@ -84,6 +70,17 @@ int findRelation(int index, Relation* relations, int elementX, int elementY) {
   }
 
   return 0;
+}
+
+int organizeRelations(const void *a, const void *b) {
+  Relation *relationA = (Relation *)a;
+  Relation *relationB = (Relation *)b;
+
+  if (relationA->elementX != relationB->elementX) {
+    return relationA->elementX - relationB->elementX;
+  } else {
+    return relationA->elementY - relationB->elementY;
+  }
 }
 
 int isReflexive(int numElements, int* setA, int numRelations, Relation* relations) {
@@ -144,6 +141,10 @@ int isSymmetric(int numRelations, Relation* relations) {
   int symmetric = 1; 
   int relationFound;
 
+  int capacity = 50;
+  Relation *symmetricRelations = (Relation*)malloc((capacity) * sizeof(Relation));
+  int index = 0;
+
   for (int i = 0; i < numRelations; i++) {
     int elementX = relations[i].elementX;
     int elementY = relations[i].elementY;
@@ -151,65 +152,94 @@ int isSymmetric(int numRelations, Relation* relations) {
     relationFound = findRelation(numRelations, relations, elementY, elementX);
 
     if (!relationFound) {
-      if (symmetric) {
-        printf("3. Simetrica: F \n");
-        printf("(%d, %d)", elementY, elementX);
-        symmetric = 0;
-      } else {
-        printf(", (%d, %d)", elementY, elementX);
+      symmetric = 0;
+
+      if (index >= capacity) {
+        capacity *= 2;
+        symmetricRelations = (Relation *)realloc(symmetricRelations, capacity * sizeof(Relation));
       }
+      
+      symmetricRelations[index].elementX = elementY;
+      symmetricRelations[index].elementY = elementX;
+      index++;
     }
   }
 
-  if (symmetric)
+  qsort(symmetricRelations, index, sizeof(Relation), organizeRelations);
+
+  if (symmetric) {
     printf("3. Simetrica: V");
+  } else {
+    printf("3. Simetrica: F \n");
+    printf("(%d, %d)", 
+          symmetricRelations[0].elementX, 
+          symmetricRelations[0].elementY);
+
+    for (int i = 1; i < index; i++)
+      printf(", (%d, %d)", 
+            symmetricRelations[i].elementX, 
+            symmetricRelations[i].elementY);
+  }
+
+  free(symmetricRelations);
 
   printf("\n");
   return symmetric;
 }
 
-int isAntiSymmetric(int numElements, int* setA, int numRelations, Relation* relations) {
+int isAntiSymmetric(int numRelations, Relation* relations) {
   int antisymmetric = 1;
   int relationFound, relationAnalyzed;
-  Relation *antiSymmetricRelations = (Relation*)malloc((numRelations) * sizeof(Relation));
+
+  int capacity = 50;
+  Relation *antiSymmetricRelations = (Relation*)malloc((capacity) * sizeof(Relation));
   int index = 0;
 
-  for (int i = 0; i < numElements; i++) {
+  for (int j = 0; j < numRelations; j++){
+    
+    int elementX = relations[j].elementX;
+    int elementY = relations[j].elementY;
 
-    for (int j = 0; j < numRelations; j++){
-      if (setA[i] != relations[j].elementX)
-        continue;
-      
-      int elementX = relations[j].elementX;
-      int elementY = relations[j].elementY;
+    if (elementX != elementY) {
+      relationFound = findRelation(numRelations, relations, elementY, elementX);
+      relationAnalyzed = findRelation(index, antiSymmetricRelations, elementY, elementX);
 
-      if (elementX != elementY) {
-        relationFound = findRelation(numRelations, relations, elementY, elementX);
-        relationAnalyzed = findRelation(index, antiSymmetricRelations, elementY, elementX);
+      if (relationFound && !(relationAnalyzed)) {
+        antisymmetric = 0;
 
-        if (relationFound && !(relationAnalyzed)) {
-          if (antisymmetric) {
-            printf("4. Anti-simetrica: F \n");
-            printf("((%d, %d), (%d, %d))", elementX, elementY, elementY, elementX);
-            antisymmetric = 0;
-          } else {
-            printf(", ((%d, %d), (%d, %d))", elementX, elementY, elementY, elementX);
-          }
-
-          antiSymmetricRelations[index].elementX = elementX;
-          antiSymmetricRelations[index].elementY = elementY;
-          antiSymmetricRelations[index + 1].elementX = elementX;
-          antiSymmetricRelations[index + 1].elementY = elementY;
-          index += 2;
+        if (index >= capacity) {
+          capacity *= 2;
+          antiSymmetricRelations = (Relation *)realloc(antiSymmetricRelations, capacity * sizeof(Relation));
         }
+
+        antiSymmetricRelations[index].elementX = elementX;
+        antiSymmetricRelations[index].elementY = elementY;
+        index++;
       }
     }
   }
 
-  free(antiSymmetricRelations);
+  qsort(antiSymmetricRelations, index, sizeof(Relation), organizeRelations);
 
-  if (antisymmetric)
+  if (antisymmetric) {
     printf("4. Anti-simetrica: V");
+  } else {
+    printf("4. Anti-simetrica: F \n");
+    printf("((%d, %d), (%d, %d))", 
+          antiSymmetricRelations[0].elementX,
+          antiSymmetricRelations[0].elementY,
+          antiSymmetricRelations[0].elementY,
+          antiSymmetricRelations[0].elementX);
+
+    for (int i = 1; i < index; i++)
+      printf(", ((%d, %d), (%d, %d))", 
+            antiSymmetricRelations[i].elementX,
+            antiSymmetricRelations[i].elementY,
+            antiSymmetricRelations[i].elementY,
+            antiSymmetricRelations[i].elementX);
+  }
+
+  free(antiSymmetricRelations);
 
   printf("\n");
   return antisymmetric;
@@ -218,7 +248,9 @@ int isAntiSymmetric(int numElements, int* setA, int numRelations, Relation* rela
 int isTransitive(int numRelations, Relation* relations) {
   int transitive = 1;
   int relationFound, relationAnalyzed;
-  Relation *transitiveRelations = (Relation*)malloc((numRelations) * sizeof(Relation));
+
+  int capacity = 50;
+  Relation *transitiveRelations = (Relation*)malloc((capacity) * sizeof(Relation));
   int index = 0;
 
   for (int i = 0; i < numRelations; i++) {
@@ -231,12 +263,11 @@ int isTransitive(int numRelations, Relation* relations) {
         relationAnalyzed = findRelation(index, transitiveRelations, elementX, elementY);
 
         if ((!relationFound) && (!relationAnalyzed)) {
-          if (transitive) {
-            printf("6. Transitiva: F \n");
-            printf("(%d, %d)", elementX, elementY);
-            transitive = 0;
-          } else {
-            printf(", (%d, %d)", elementX, elementY);
+          transitive = 0;
+
+          if (index >= capacity) {
+            capacity *= 2;
+            transitiveRelations = (Relation *)realloc(transitiveRelations, capacity * sizeof(Relation));
           }
 
           transitiveRelations[index].elementX = elementX;
@@ -247,13 +278,21 @@ int isTransitive(int numRelations, Relation* relations) {
     }
   }
 
-  free(transitiveRelations);
+  qsort(transitiveRelations, index, sizeof(Relation), organizeRelations);
 
-  if (transitive)
+  if (transitive) {
     printf("6. Transitiva: V");
+  } else {
+    printf("6. Transitiva: F\n");
+    printf("(%d, %d)", transitiveRelations[0].elementX, transitiveRelations[0].elementY);
 
-  printf("\n");
+    for (int i = 1; i < index; i++)
+      printf(", (%d, %d)", transitiveRelations[i].elementX, transitiveRelations[i].elementY);
+  }
   
+  free(transitiveRelations);
+  printf("\n");
+
   return transitive;
 }
 
