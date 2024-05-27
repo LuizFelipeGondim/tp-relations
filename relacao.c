@@ -23,9 +23,9 @@ void showRelations(int index, Relation* relations);
 
 int main() {
   Relation relations[TAM];
-  ClosureParams symmetricClosure;
-  ClosureParams reflexiveClosure;
-  ClosureParams transitiveClosure;
+  ClosureParams symmetricClosure = {0, {}};
+  ClosureParams reflexiveClosure = {0, {}};
+  ClosureParams transitiveClosure = {0, {}};
 
   int numElements, numRelations = 0;
   scanf("%d", &numElements);
