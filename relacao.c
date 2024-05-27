@@ -172,10 +172,8 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
 
   }
 
-  if (reflexive) {
-    printf("1. Reflexiva: V");
-  } else {
-    printf("1. Reflexiva: F\n");
+  printf("1. Reflexiva: %c\n", reflexive ? 'V' : 'F');
+  if (!reflexive) {
     printf("(%d, %d)", 
           reflexiveRelations[0].elementX, 
           reflexiveRelations[0].elementY);
@@ -185,6 +183,7 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
             reflexiveRelations[i].elementX, 
             reflexiveRelations[i].elementY);
   
+    printf("\n");
     reflexiveClosure->closureRelations = (Relation *)malloc(capacity * sizeof(Relation));
 
     for (int i = 0; i < index; i++) {
@@ -195,8 +194,6 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
   }
 
   free(reflexiveRelations);
-
-  printf("\n");
   return reflexive;
 }
 
@@ -257,10 +254,8 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
 
   qsort(symmetricRelations, index, sizeof(Relation), organizeRelations);
 
-  if (symmetric) {
-    printf("3. Simetrica: V");
-  } else {
-    printf("3. Simetrica: F\n");
+  printf("3. Simetrica: %c\n", symmetric ? 'V' : 'F');
+  if (!symmetric) {
     printf("(%d, %d)", 
           symmetricRelations[0].elementX, 
           symmetricRelations[0].elementY);
@@ -270,6 +265,7 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
             symmetricRelations[i].elementX, 
             symmetricRelations[i].elementY);
 
+    printf("\n");
     symmetricClosure->closureRelations = (Relation *)malloc(capacity * sizeof(Relation));
 
     for (int i = 0; i < index; i++) {
@@ -281,8 +277,6 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
   }
 
   free(symmetricRelations);
-  
-  printf("\n");
   return symmetric;
 }
 
@@ -320,10 +314,8 @@ int isAntiSymmetric(int numRelations, Relation* relations) {
 
   qsort(antiSymmetricRelations, index, sizeof(Relation), organizeRelations);
 
-  if (antisymmetric) {
-    printf("4. Anti-simetrica: V");
-  } else {
-    printf("4. Anti-simetrica: F\n");
+  printf("4. Anti-simetrica: %c\n", antisymmetric ? 'V' : 'F');
+  if (!antisymmetric) {
     printf("((%d, %d), (%d, %d))", 
           antiSymmetricRelations[0].elementX,
           antiSymmetricRelations[0].elementY,
@@ -336,11 +328,11 @@ int isAntiSymmetric(int numRelations, Relation* relations) {
             antiSymmetricRelations[i].elementY,
             antiSymmetricRelations[i].elementY,
             antiSymmetricRelations[i].elementX);
+    
+    printf("\n");
   }
 
   free(antiSymmetricRelations);
-
-  printf("\n");
   return antisymmetric;
 }
 
@@ -379,19 +371,21 @@ int isTransitive(int numRelations, Relation* relations) {
 
   qsort(transitiveRelations, index, sizeof(Relation), organizeRelations);
 
-  if (transitive) {
-    printf("6. Transitiva: V");
-  } else {
-    printf("6. Transitiva: F\n");
-    printf("(%d, %d)", transitiveRelations[0].elementX, transitiveRelations[0].elementY);
+  printf("6. Transitiva: %c\n", transitive ? 'V' : 'F');
+  if (!transitive) {
+    printf("(%d, %d)", 
+          transitiveRelations[0].elementX, 
+          transitiveRelations[0].elementY);
 
     for (int i = 1; i < index; i++)
-      printf(", (%d, %d)", transitiveRelations[i].elementX, transitiveRelations[i].elementY);
+      printf(", (%d, %d)", 
+            transitiveRelations[i].elementX, 
+            transitiveRelations[i].elementY);
+
+    printf("\n");
   }
   
   free(transitiveRelations);
-  printf("\n");
-
   return transitive;
 }
 
@@ -404,8 +398,8 @@ void findTransitiveClosure(int numRelations, Relation* relations, ClosureParams*
     transitiveClosure->closureRelations[index++] = relations[i];
   }
 
-  int addedNewRelations;
-  do {
+  int addedNewRelations = 1;
+  while (addedNewRelations) {
     addedNewRelations = 0;
     for (int i = 0; i < index; i++) {
       for (int j = 0; j < index; j++) {
@@ -426,7 +420,7 @@ void findTransitiveClosure(int numRelations, Relation* relations, ClosureParams*
         }
       }
     }
-  } while (addedNewRelations);
+  }
 
   transitiveClosure->index = index;
   qsort(transitiveClosure->closureRelations, index, sizeof(Relation), organizeRelations);
