@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define TAM 50
 
 typedef struct {
   int elementX;
@@ -8,7 +9,7 @@ typedef struct {
 
 typedef struct {
   int index;
-  Relation* closureRelations;
+  Relation closureRelations[TAM * TAM];
 } ClosureParams;
 
 int isReflexive(int numElements, int* setA, int numRelations, Relation* relations, ClosureParams* reflexiveClosure);
@@ -16,28 +17,29 @@ int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relati
 int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricClosure);
 int isAntiSymmetric(int numRelations, Relation* relations);
 int isTransitive(int numRelations, Relation* relations);
-void prepareClosure(ClosureParams* closure, Relation* relations, int numRelations);
-void findTransitiveClosure(int numRelations, Relation* relations, ClosureParams* transitiveClosure);
-Relation* getRelations(int* numRelations);
+void prepareClosure(ClosureParams* closure, int numRelations, Relation* relations);
+void findTransitiveClosure(ClosureParams* transitiveClosure);
 
 int main() {
-  Relation *relations = NULL;
+  Relation relations[TAM];
   ClosureParams symmetricClosure;
   ClosureParams reflexiveClosure;
   ClosureParams transitiveClosure;
-  symmetricClosure.closureRelations = NULL;
-  reflexiveClosure.closureRelations = NULL;
-  transitiveClosure.closureRelations = NULL;
 
   int numElements, numRelations = 0;
   scanf("%d", &numElements);
 
-  int *setA = (int*)malloc((numElements) * sizeof(int));
+  int setA[numElements];
 
   for (int i = 0; i < numElements; i++)
-    scanf("%d", &(setA)[i]);
+    scanf("%d", &setA[i]);
 
-  relations = getRelations(&numRelations);
+  int x, y;
+  while (scanf("%d %d", &x, &y) != EOF) {
+    relations[numRelations].elementX = x;
+    relations[numRelations].elementY = y;
+    numRelations++;
+  }
 
   printf("Propriedades\n");
   
@@ -61,7 +63,7 @@ int main() {
     printf(" R");
   } else {
     printf("\n");
-    prepareClosure(&reflexiveClosure, relations, numRelations);
+    prepareClosure(&reflexiveClosure, numRelations, relations);
 
     for (int i = 0; i < reflexiveClosure.index; i++) {
       int elementX = reflexiveClosure.closureRelations[i].elementX;
@@ -80,7 +82,7 @@ int main() {
     printf(" R");
   } else {
     printf("\n");
-    prepareClosure(&symmetricClosure, relations, numRelations);
+    prepareClosure(&symmetricClosure, numRelations, relations);
 
     for (int i = 0; i < symmetricClosure.index; i++) {
       int elementX = symmetricClosure.closureRelations[i].elementX;
@@ -99,7 +101,8 @@ int main() {
     printf(" R");
   } else {
     printf("\n");
-    findTransitiveClosure(numRelations, relations, &transitiveClosure);
+    prepareClosure(&transitiveClosure, numRelations, relations);
+    findTransitiveClosure(&transitiveClosure);
 
     for (int i = 0; i < transitiveClosure.index; i++) {
       int elementX = transitiveClosure.closureRelations[i].elementX;
@@ -113,13 +116,7 @@ int main() {
     }
   }
 
-  printf("\n");
-
-  free(setA);
-  free(relations);
-  free(reflexiveClosure.closureRelations);
-  free(symmetricClosure.closureRelations);
-
+  printf("\n\n");
   return 0;
 }
 
@@ -147,9 +144,7 @@ int organizeRelations(const void *a, const void *b) {
 int isReflexive(int numElements, int* setA, int numRelations, Relation* relations, ClosureParams* reflexiveClosure) {
   int reflexive = 1; 
   int relationFound;
-
-  int capacity = 50;
-  Relation *reflexiveRelations = (Relation *)malloc(capacity * sizeof(Relation));
+  Relation reflexiveRelations[numElements];
   int index = 0;
 
   for (int i = 0; i < numElements; i++) {
@@ -160,16 +155,10 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
     if (!relationFound) {
       reflexive = 0;
 
-      if (index >= capacity) {
-        capacity *= 2;
-        reflexiveRelations = (Relation *)realloc(reflexiveRelations, capacity * sizeof(Relation));
-      }
-
       reflexiveRelations[index].elementX = element;
       reflexiveRelations[index].elementY = element;
       index++;
     }
-
   }
 
   printf("1. Reflexiva: %c\n", reflexive ? 'V' : 'F');
@@ -184,7 +173,6 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
             reflexiveRelations[i].elementY);
   
     printf("\n");
-    reflexiveClosure->closureRelations = (Relation *)malloc(capacity * sizeof(Relation));
 
     for (int i = 0; i < index; i++) {
       reflexiveClosure->closureRelations[i].elementX = reflexiveRelations[i].elementX;
@@ -193,7 +181,6 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
     reflexiveClosure->index = index;
   }
 
-  free(reflexiveRelations);
   return reflexive;
 }
 
@@ -227,9 +214,7 @@ int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relati
 int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricClosure) {
   int symmetric = 1; 
   int relationFound;
-
-  int capacity = 50;
-  Relation *symmetricRelations = (Relation *)malloc(capacity * sizeof(Relation));
+  Relation symmetricRelations[TAM];
   int index = 0;
 
   for (int i = 0; i < numRelations; i++) {
@@ -241,11 +226,6 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
     if (!relationFound) {
       symmetric = 0;
 
-      if (index >= capacity) {
-        capacity *= 2;
-        symmetricRelations = (Relation *)realloc(symmetricRelations, capacity * sizeof(Relation));
-      }
-      
       symmetricRelations[index].elementX = elementY;
       symmetricRelations[index].elementY = elementX;
       index++;
@@ -266,7 +246,6 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
             symmetricRelations[i].elementY);
 
     printf("\n");
-    symmetricClosure->closureRelations = (Relation *)malloc(capacity * sizeof(Relation));
 
     for (int i = 0; i < index; i++) {
       symmetricClosure->closureRelations[i].elementX = symmetricRelations[i].elementX;
@@ -276,16 +255,13 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
     symmetricClosure->index = index;
   }
 
-  free(symmetricRelations);
   return symmetric;
 }
 
 int isAntiSymmetric(int numRelations, Relation* relations) {
   int antisymmetric = 1;
   int relationFound, relationAnalyzed;
-
-  int capacity = 50;
-  Relation *antiSymmetricRelations = (Relation*)malloc((capacity) * sizeof(Relation));
+  Relation antiSymmetricRelations[TAM];
   int index = 0;
 
   for (int j = 0; j < numRelations; j++){
@@ -299,11 +275,6 @@ int isAntiSymmetric(int numRelations, Relation* relations) {
 
       if (relationFound && !(relationAnalyzed)) {
         antisymmetric = 0;
-
-        if (index >= capacity) {
-          capacity *= 2;
-          antiSymmetricRelations = (Relation *)realloc(antiSymmetricRelations, capacity * sizeof(Relation));
-        }
 
         antiSymmetricRelations[index].elementX = elementX;
         antiSymmetricRelations[index].elementY = elementY;
@@ -332,16 +303,13 @@ int isAntiSymmetric(int numRelations, Relation* relations) {
     printf("\n");
   }
 
-  free(antiSymmetricRelations);
   return antisymmetric;
 }
 
 int isTransitive(int numRelations, Relation* relations) {
   int transitive = 1;
   int relationFound, relationAnalyzed;
-
-  int capacity = 50;
-  Relation *transitiveRelations = (Relation*)malloc((capacity) * sizeof(Relation));
+  Relation transitiveRelations[TAM * 2];
   int index = 0;
 
   for (int i = 0; i < numRelations; i++) {
@@ -355,11 +323,6 @@ int isTransitive(int numRelations, Relation* relations) {
 
         if ((!relationFound) && (!relationAnalyzed)) {
           transitive = 0;
-
-          if (index >= capacity) {
-            capacity *= 2;
-            transitiveRelations = (Relation *)realloc(transitiveRelations, capacity * sizeof(Relation));
-          }
 
           transitiveRelations[index].elementX = elementX;
           transitiveRelations[index].elementY = elementY;
@@ -384,21 +347,15 @@ int isTransitive(int numRelations, Relation* relations) {
 
     printf("\n");
   }
-  
-  free(transitiveRelations);
+
   return transitive;
 }
 
-void findTransitiveClosure(int numRelations, Relation* relations, ClosureParams* transitiveClosure) {
-  int capacity = numRelations;
-  transitiveClosure->closureRelations = (Relation*)malloc(capacity * sizeof(Relation));
-  int index = 0;
-
-  for (int i = 0; i < numRelations; i++) {
-    transitiveClosure->closureRelations[index++] = relations[i];
-  }
-
+void findTransitiveClosure(ClosureParams* transitiveClosure) {
+  int index = transitiveClosure->index;
+  int relationFound;
   int addedNewRelations = 1;
+
   while (addedNewRelations) {
     addedNewRelations = 0;
     for (int i = 0; i < index; i++) {
@@ -406,12 +363,9 @@ void findTransitiveClosure(int numRelations, Relation* relations, ClosureParams*
         if (transitiveClosure->closureRelations[i].elementY == transitiveClosure->closureRelations[j].elementX) {
           int elementX = transitiveClosure->closureRelations[i].elementX;
           int elementY = transitiveClosure->closureRelations[j].elementY;
-
-          if (!findRelation(index, transitiveClosure->closureRelations, elementX, elementY)) {
-            if (index >= capacity) {
-              capacity *= 2;
-              transitiveClosure->closureRelations = (Relation*)realloc(transitiveClosure->closureRelations, capacity * sizeof(Relation));
-            }
+          relationFound = findRelation(index, transitiveClosure->closureRelations, elementX, elementY);
+          
+          if (!relationFound) {
             transitiveClosure->closureRelations[index].elementX = elementX;
             transitiveClosure->closureRelations[index].elementY = elementY;
             index++;
@@ -426,33 +380,14 @@ void findTransitiveClosure(int numRelations, Relation* relations, ClosureParams*
   qsort(transitiveClosure->closureRelations, index, sizeof(Relation), organizeRelations);
 }
 
-void prepareClosure(ClosureParams* closure, Relation* relations, int numRelations) {
+void prepareClosure(ClosureParams* closure, int numRelations, Relation* relations) {
   int index = closure->index;
-  int capacity = index + numRelations;
-  closure->closureRelations = (Relation *)realloc(closure->closureRelations, capacity * sizeof(Relation));
 
   for (int i = 0; i < numRelations; i++) {
-    closure->closureRelations[index].elementX = relations[i].elementX;
-    closure->closureRelations[index].elementY = relations[i].elementY;
+    closure->closureRelations[index] = relations[i];
     index++;
   }
 
   qsort(closure->closureRelations, index, sizeof(Relation), organizeRelations);
   closure->index = index;
-}
-
-Relation* getRelations(int* numRelations) {
-
-  Relation *aux = NULL;
-  int elementX, elementY;
-
-  while (scanf("%d %d", &elementX, &elementY) != EOF) {
-    (*numRelations)++;
-
-    aux = (Relation*)realloc(aux, (*numRelations) * sizeof(Relation));
-    aux[(*numRelations) - 1].elementX = elementX;
-    aux[(*numRelations) - 1].elementY = elementY;
-  }
-
-  return aux;
 }
