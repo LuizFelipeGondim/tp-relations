@@ -8,18 +8,18 @@ typedef struct {
 } Relation;
 
 typedef struct {
-  int index;
+  int closureSize;
   Relation closureRelations[TAM * TAM];
 } ClosureParams;
 
+void prepareClosure(ClosureParams* closure, int numRelations, Relation* relations);
+void showRelations(int numRelations, Relation* relations);
 int isReflexive(int numElements, int* setA, int numRelations, Relation* relations, ClosureParams* reflexiveClosure);
 int isIrreflexive(int numElements, int* setA, int numRelations, Relation* relations);
 int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricClosure);
 int isAntiSymmetric(int numRelations, Relation* relations);
 int isTransitive(int numRelations, Relation* relations);
-void prepareClosure(ClosureParams* closure, int numRelations, Relation* relations);
-void findTransitiveClosure(ClosureParams* transitiveClosure);
-void showRelations(int index, Relation* relations);
+void getTransitiveClosure(ClosureParams* transitiveClosure);
 
 int main() {
   Relation relations[TAM];
@@ -65,7 +65,7 @@ int main() {
   } else {
     printf("\n");
     prepareClosure(&reflexiveClosure, numRelations, relations);
-    showRelations(reflexiveClosure.index, reflexiveClosure.closureRelations);
+    showRelations(reflexiveClosure.closureSize, reflexiveClosure.closureRelations);
   }
 
   printf("\nFecho simetrico da relacao:");
@@ -74,7 +74,7 @@ int main() {
   } else {
     printf("\n");
     prepareClosure(&symmetricClosure, numRelations, relations);
-    showRelations(symmetricClosure.index, symmetricClosure.closureRelations);
+    showRelations(symmetricClosure.closureSize, symmetricClosure.closureRelations);
   }
 
   printf("\nFecho transitivo da relacao:");
@@ -83,16 +83,16 @@ int main() {
   } else {
     printf("\n");
     prepareClosure(&transitiveClosure, numRelations, relations);
-    findTransitiveClosure(&transitiveClosure);
-    showRelations(transitiveClosure.index, transitiveClosure.closureRelations);
+    getTransitiveClosure(&transitiveClosure);
+    showRelations(transitiveClosure.closureSize, transitiveClosure.closureRelations);
   }
 
   printf("\n\n");
   return 0;
 }
 
-int findRelation(int index, Relation* relations, int elementX, int elementY) {
-  for (int i = 0; i < index; i++) {
+int findRelation(int numRelations, Relation* relations, int elementX, int elementY) {
+  for (int i = 0; i < numRelations; i++) {
     if (relations[i].elementX == elementX && relations[i].elementY == elementY) {
       return 1;
     }
@@ -112,10 +112,22 @@ int organizeRelations(const void *a, const void *b) {
   }
 }
 
-void showRelations(int index, Relation* relations) {
+void prepareClosure(ClosureParams* closure, int numRelations, Relation* relations) {
+  int index = closure->closureSize;
+
+  for (int i = 0; i < numRelations; i++) {
+    closure->closureRelations[index] = relations[i];
+    index++;
+  }
+
+  qsort(closure->closureRelations, index, sizeof(Relation), organizeRelations);
+  closure->closureSize = index;
+}
+
+void showRelations(int numRelations, Relation* relations) {
   printf("(%d, %d)", relations[0].elementX, relations[0].elementY);
 
-  for (int i = 1; i < index; i++)
+  for (int i = 1; i < numRelations; i++)
     printf(", (%d, %d)", relations[i].elementX, relations[i].elementY);
 }
 
@@ -148,7 +160,7 @@ int isReflexive(int numElements, int* setA, int numRelations, Relation* relation
       reflexiveClosure->closureRelations[i].elementX = reflexiveRelations[i].elementX;
       reflexiveClosure->closureRelations[i].elementY = reflexiveRelations[i].elementY;
     }
-    reflexiveClosure->index = index;
+    reflexiveClosure->closureSize = index;
   }
 
   return reflexive;
@@ -216,7 +228,7 @@ int isSymmetric(int numRelations, Relation* relations, ClosureParams* symmetricC
       symmetricClosure->closureRelations[i].elementY = symmetricRelations[i].elementY;
     }
 
-    symmetricClosure->index = index;
+    symmetricClosure->closureSize = index;
   }
 
   return symmetric;
@@ -307,8 +319,8 @@ int isTransitive(int numRelations, Relation* relations) {
   return transitive;
 }
 
-void findTransitiveClosure(ClosureParams* transitiveClosure) {
-  int index = transitiveClosure->index;
+void getTransitiveClosure(ClosureParams* transitiveClosure) {
+  int index = transitiveClosure->closureSize;
   int relationFound;
   int addedNewRelations = 1;
 
@@ -332,18 +344,6 @@ void findTransitiveClosure(ClosureParams* transitiveClosure) {
     }
   }
 
-  transitiveClosure->index = index;
+  transitiveClosure->closureSize = index;
   qsort(transitiveClosure->closureRelations, index, sizeof(Relation), organizeRelations);
-}
-
-void prepareClosure(ClosureParams* closure, int numRelations, Relation* relations) {
-  int index = closure->index;
-
-  for (int i = 0; i < numRelations; i++) {
-    closure->closureRelations[index] = relations[i];
-    index++;
-  }
-
-  qsort(closure->closureRelations, index, sizeof(Relation), organizeRelations);
-  closure->index = index;
 }
